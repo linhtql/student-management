@@ -1,0 +1,272 @@
+package controller;
+
+import java.awt.CardLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.util.Date;
+import java.util.List;
+
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
+import javax.swing.JTextField;
+import javax.swing.RowFilter;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableModel;
+import javax.swing.table.TableRowSorter;
+
+import model.HocVien;
+import service.HocVienService;
+import service.HocVienServiceImpl;
+import utility.ClassTableModel;
+import views.HocVienJFrame;
+
+public class QuanLyHocVienController {
+
+	private JPanel jpnView;
+	private JButton btnAdd;
+	private JButton btnDelete;
+	private JButton btnPrint;
+	private JTextField jtfSearch;
+
+	private final String[] COLUMNS = { "STT", "Mã học viên", "Tên học viên", "Ngày sinh", "Giới tính", "Số điện thoại",
+			"Địa chỉ", "Trạng thái" };
+	private HocVien hocvien = null;
+
+	private HocVienService hocVienService = null;
+
+	private TableRowSorter<TableModel> rowSorter = null;
+
+	public QuanLyHocVienController(JPanel jpnView, JButton btnAdd, JButton btnDelete, JTextField jtfSearch, JButton btnPrint) {
+		super();
+		this.jpnView = jpnView;
+		this.btnAdd = btnAdd;
+		this.jtfSearch = jtfSearch;
+		this.btnDelete = btnDelete;
+		this.btnPrint = btnPrint;
+
+		this.hocVienService = new HocVienServiceImpl();
+	}
+
+	public QuanLyHocVienController() {
+		super();
+		this.hocVienService = new HocVienServiceImpl();
+	}
+
+	public void setDateToTable() {
+		List<HocVien> listItem = hocVienService.getList();
+
+		DefaultTableModel model = new ClassTableModel().setTableHocVien(listItem, COLUMNS);
+		JTable table = new JTable(model);
+
+		rowSorter = new TableRowSorter<>(table.getModel());
+		table.setRowSorter(rowSorter);
+
+		jtfSearch.getDocument().addDocumentListener(new DocumentListener() {
+
+			@Override
+			public void removeUpdate(DocumentEvent e) {
+				String text = jtfSearch.getText();
+				if (text.trim().length() == 0) {
+					rowSorter.setRowFilter(null);
+				} else {
+					rowSorter.setRowFilter(RowFilter.regexFilter("(?i)" + text));
+				}
+
+			}
+
+			@Override
+			public void insertUpdate(DocumentEvent e) {
+				String text = jtfSearch.getText();
+				if (text.trim().length() == 0) {
+					rowSorter.setRowFilter(null);
+				} else {
+					rowSorter.setRowFilter(RowFilter.regexFilter("(?i)" + text));
+				}
+
+			}
+
+			@Override
+			public void changedUpdate(DocumentEvent e) {
+				// TODO Auto-generated method stub
+
+			}
+		});
+
+		table.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				if (e.getClickCount() == 2 && table.getSelectedRow() != -1) {
+					DefaultTableModel model = (DefaultTableModel) table.getModel();
+					int selectedRowIndex = table.getSelectedRow();
+					selectedRowIndex = table.convertRowIndexToView(selectedRowIndex);
+
+					HocVien hocvien = new HocVien();
+					hocvien.setMa_hoc_vien((int) model.getValueAt(selectedRowIndex, 1));
+					hocvien.setHo_ten(model.getValueAt(selectedRowIndex, 2).toString());
+					hocvien.setNgay_sinh((Date) model.getValueAt(selectedRowIndex, 3));
+					hocvien.setGioi_tinh(model.getValueAt(selectedRowIndex, 4).toString().equalsIgnoreCase("Nam"));
+					hocvien.setSo_dien_thoai(model.getValueAt(selectedRowIndex, 5) != null
+							? model.getValueAt(selectedRowIndex, 5).toString()
+							: "");
+					hocvien.setDia_chi(model.getValueAt(selectedRowIndex, 6) != null
+							? model.getValueAt(selectedRowIndex, 6).toString()
+							: "");
+					hocvien.setTinh_trang((boolean) model.getValueAt(selectedRowIndex, 7));
+					HocVienJFrame frame = new HocVienJFrame(hocvien);
+					frame.setTitle("Thông tin học viên");
+					frame.setResizable(false);
+					frame.setLocationRelativeTo(null);
+					frame.setVisible(true);
+					frame.addWindowListener(new java.awt.event.WindowAdapter() {
+						@Override
+						public void windowClosing(java.awt.event.WindowEvent windowEvent) {
+//					        if (JOptionPane.showConfirmDialog(frame, 
+//					            "Are you sure you want to close this window?", "Close Window?", 
+//					            JOptionPane.YES_NO_OPTION,
+//					            JOptionPane.QUESTION_MESSAGE) == JOptionPane.YES_OPTION){
+//					            System.exit(0);
+//					        }
+							setDateToTable();
+						}
+					});
+
+				} else {
+					DefaultTableModel model = (DefaultTableModel) table.getModel();
+					int selectedRowIndex = table.getSelectedRow();
+					selectedRowIndex = table.convertRowIndexToView(selectedRowIndex);
+
+					HocVien hocvien = new HocVien();
+					hocvien.setMa_hoc_vien((int) model.getValueAt(selectedRowIndex, 1));
+
+					btnDelete.addMouseListener(new MouseListener() {
+
+						@Override
+						public void mouseReleased(MouseEvent e) {
+							// TODO Auto-generated method stub
+
+						}
+
+						@Override
+						public void mousePressed(MouseEvent e) {
+							// TODO Auto-generated method stub
+
+						}
+
+						@Override
+						public void mouseExited(MouseEvent e) {
+							// TODO Auto-generated method stub
+
+						}
+
+						@Override
+						public void mouseEntered(MouseEvent e) {
+							// TODO Auto-generated method stub
+
+						}
+
+						@Override
+						public void mouseClicked(MouseEvent e) {
+							JOptionPane.showConfirmDialog(null, "Bạn muốn xóa dữ liệu hay không?", "Thông báo",
+									JOptionPane.YES_NO_OPTION);
+
+							int la = hocVienService.delete(hocvien);
+							if (la == 0) {
+								JOptionPane.showMessageDialog(null, "Thành công !");
+								setDateToTable();
+							} else
+								JOptionPane.showMessageDialog(null, "Thất bại !");
+
+						}
+					});
+				}
+				super.mouseClicked(e);
+			}
+		});
+
+		// design
+		table.getTableHeader().setFont(new Font("Arial", Font.BOLD, 14));
+		table.getTableHeader().setPreferredSize(new Dimension(100, 50));
+		table.setRowHeight(50);
+		table.validate();
+		table.repaint();
+
+		JScrollPane scroll = new JScrollPane();
+		scroll.getViewport().add(table);
+		scroll.setPreferredSize(new Dimension(1350, 400));
+		jpnView.removeAll();
+		jpnView.setLayout(new CardLayout());
+		jpnView.add(scroll);
+		jpnView.validate();
+		jpnView.repaint();
+	}
+
+	public void setEvent() {
+		btnAdd.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				HocVienJFrame frame = new HocVienJFrame(new HocVien());
+				frame.setTitle("Thông tin học viên");
+				frame.setLocationRelativeTo(null);
+				frame.setResizable(false);
+				frame.setVisible(true);
+				frame.addWindowListener(new java.awt.event.WindowAdapter() {
+					@Override
+					public void windowClosing(java.awt.event.WindowEvent windowEvent) {
+						setDateToTable();
+					}
+				});
+
+			}
+
+			@Override
+			public void mouseEntered(MouseEvent e) {
+				btnAdd.setBackground(new Color(0, 200, 83));
+			}
+
+			@Override
+			public void mouseExited(MouseEvent e) {
+				btnAdd.setBackground(new Color(100, 221, 23));
+			}
+		});
+		
+		btnPrint.addMouseListener(new MouseAdapter() {
+			@Override
+			public void mouseClicked(MouseEvent e) {
+				HocVienJFrame frame = new HocVienJFrame(new HocVien());
+				frame.setTitle("Thông tin học viên");
+				frame.setLocationRelativeTo(null);
+				frame.setResizable(false);
+				frame.setVisible(true);
+				frame.addWindowListener(new java.awt.event.WindowAdapter() {
+					@Override
+					public void windowClosing(java.awt.event.WindowEvent windowEvent) {
+						setDateToTable();
+					}
+				});
+
+			}
+
+			@Override
+			public void mouseEntered(MouseEvent e) {
+				btnAdd.setBackground(new Color(0, 200, 83));
+			}
+
+			@Override
+			public void mouseExited(MouseEvent e) {
+				btnAdd.setBackground(new Color(100, 221, 23));
+			}
+		});
+
+	}
+
+}
